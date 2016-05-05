@@ -7,7 +7,8 @@ from sklearn import metrics, cross_validation, linear_model
 from scipy import sparse
 from itertools import combinations
 from sklearn.externals import joblib
-
+from sklearn.grid_search import RandomizedSearchCV
+from sklearn.grid_search import GridSearchCV
 import numpy as np
 import pandas as pd
 
@@ -72,7 +73,7 @@ def cv_loop(X, y, model, N):
         model.fit(X_train, y_train)
         preds = model.predict_proba(X_cv)[:,1]
         auc = metrics.roc_auc_score(y_cv, preds)
-        print "AUC (fold %d/%d): %f" % (i + 1, N, auc)
+        #print "AUC (fold %d/%d): %f" % (i + 1, N, auc)
         mean_auc += auc
     return mean_auc/N
     
@@ -113,7 +114,7 @@ def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):
     N = 10
     good_features = set([])
     # Greedy feature selection loop
-    while len(score_hist) < 2 or score_hist[-1][0] > score_hist[-2][0]:
+    '''while len(score_hist) < 2 or score_hist[-1][0] > score_hist[-2][0]:
         scores = []
         for f in range(len(Xts)):
             if f not in good_features:
@@ -128,20 +129,21 @@ def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):
     
     # Remove last added feature from good_features
     good_features.remove(score_hist[-1][1])
-    good_features = sorted(list(good_features))
+    good_features = sorted(list(good_features))'''
+    good_features = [0,5,8,9,10,12,19,36,37,38,41,42,43,47,53,60,61,63,64,67,69,71,75,81,82,85]
     print "Selected features %s" % good_features
     
     print "Performing hyperparameter selection..."
     # Hyperparameter selection loop
     score_hist = []
     Xt = sparse.hstack([Xts[j] for j in good_features]).tocsr()
-    Cvals = np.logspace(-4, 4, 15, base=2)
+    '''Cvals = np.logspace(-4, 4, 15, base=2)
     for C in Cvals:
         model.C = C
         score = cv_loop(Xt, y, model, N)
         score_hist.append((score,C))
-        print "C: %f Mean AUC: %f" %(C, score)
-    bestC = sorted(score_hist)[-1][1]
+        print "C: %f Mean AUC: %f" %(C, score)'''
+    bestC = 1.485994
     print "Best C value: %f" % (bestC)
     
     print "Performing One Hot Encoding on entire dataset..."
@@ -151,12 +153,41 @@ def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):
     X_test = Xt[num_train:]
     
     print "Training full model..."
-    model.fit(X_train, y)
+    #model.fit(X_train, y)
     
+    param_dist = [{
+      'penalty':['l2'], 'dual':[False, True], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+      'intercept_scaling':[.5,1,2], 'class_weight':[None], 'random_state':[5], 
+      'solver':["liblinear"], 'multi_class':['ovr'], 'verbose':[0], 
+      'warm_start':[False], 'n_jobs':[1]},
+      {'penalty':['l1'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+      'intercept_scaling':[.5,1,2], 'class_weight':[None], 'random_state':[5], 
+      'solver':["liblinear"], 'multi_class':['ovr'], 'verbose':[0], 
+      'warm_start':[False], 'n_jobs':[1]},
+      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+      'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
+      'solver':["sag"], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr'], 'verbose':[0], 
+      'warm_start':[False], 'n_jobs':[1]},
+      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+      'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
+      'solver':["newton-cg",], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr'], 'verbose':[0], 
+      'warm_start':[False], 'n_jobs':[1]},
+      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+      'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
+      'solver':["lbfgs",], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr','multinomial'], 'verbose':[0], 
+      'warm_start':[False], 'n_jobs':[1]}]
+    #random_search = GridSearchCV(model, param_grid=param_dist, cv=5, n_jobs=3)
+
+    random_search =joblib.load('randomSearchGiven.pkl')
+    #random_search.fit(X_train, y)
+    print(random_search.get_params)
+
     print "Making prediction and saving results..."
-    preds = model.predict_proba(X_test)[:,1]
+    preds = random_search.predict_proba(X_test)[:,1]
     create_test_submission(submit, preds)
-    joblib.dump(model, 'savedLogRegModel.pkl')
+    joblib.dump(random_search, 'randomSearchGiven.pkl')
+
+
     
 if __name__ == "__main__":
     args = { 'train':  'train.csv',
