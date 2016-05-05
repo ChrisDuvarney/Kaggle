@@ -46,7 +46,7 @@ def matrixFromCSV(path):
         intVals = numpy.array([float(stringVals[i])/highest[i] for i in range(len(stringVals))])
         #intVals.reshape(9,1)
         if len(intVals)!=0:
-           listOfVals.append(intVals)
+           listOfVals.append(intVals[:-2])
         try:
             listOfActions.append(int(elem.split(",")[0]))
         except:
@@ -66,10 +66,10 @@ def main():
         "bootstrap": [True, False],
         "criterion": ["gini", "entropy"]}
     random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
-        n_iter=40, cv=5, n_jobs=-1)
+        n_iter=40, cv=5, n_jobs=3)
     random_search.fit(vals,actions)
-    joblib.dump(random_search, 'filename.pkl')
-    random_search = joblib.load('filename.pkl')
+    joblib.dump(random_search, 'RandomForrestFix.pkl')
+    random_search = joblib.load('RandomForrestFix.pkl')
     writeToCSV(random_search.predict(totalTest))
     print(random_search.score(X_test,y_test))
 

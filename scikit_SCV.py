@@ -46,7 +46,7 @@ def matrixFromCSV(path):
         intVals = numpy.array([float(stringVals[i])/highest[i] for i in range(len(stringVals))])
         #intVals.reshape(9,1)
         if len(intVals)!=0:
-           listOfVals.append(intVals)
+           listOfVals.append(intVals[:-2])
         try:
             listOfActions.append(int(elem.split(",")[0]))
         except:
@@ -57,15 +57,12 @@ def main():
     vals, actions = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\train.csv")
     X_train, X_test, y_train, y_test = train_test_split(vals, actions, test_size=0.33, random_state=22)
     totalTest, totalAns = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\test.csv")
-    '''clf = SVC()
-    param_dist = {"C":[1.0,2.0,4.0, .5, .3], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'degree':range(2,7), 
-    'gamma':[.001, .01, .1, 1, 10], 'shrinking':[True,False], 'tol':[0.001,.0001, .01, .1],
-    'cache_size':[600], 'class_weight':[None, 'balanced'], 'verbose':[False], 'decision_function_shape':[None], 'random_state':[5]}
-
-    random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
-        n_iter=60, cv=5, n_jobs=3)
+    clf = SVC()
+    param_dist = {"C":[1.0,2.0,4.0, .5, .3], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1, 1, 10], 
+    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]}
+    GridSearchCV(clf, param_grid=param_dist, cv=5, n_jobs=3)
     random_search.fit(vals,actions)
-    joblib.dump(random_search, 'SVCsearch.pkl')'''
+    joblib.dump(random_search, 'SVCsearch.pkl')
     random_search = joblib.load('SVCsearch.pkl')
     writeToCSV(random_search.predict(totalTest))
     print(random_search.score(X_test,y_test))
