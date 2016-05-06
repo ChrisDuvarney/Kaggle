@@ -57,20 +57,28 @@ def main():
     vals, actions = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\train.csv")
     X_train, X_test, y_train, y_test = train_test_split(vals, actions, test_size=0.33, random_state=22)
     totalTest, totalAns = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\test.csv")
-    test = RandomForestClassifier(max_depth=20, n_estimators=15, max_features=5)
-    clf = RandomForestClassifier(n_estimators=20)
-    param_dist = {"max_depth": range(3,30),
-        "max_features": range(1,10),
-        "min_samples_split": range(1, 11),
-        "min_samples_leaf": range(1, 11),
-        "bootstrap": [True, False],
-        "criterion": ["gini", "entropy"]}
-    random_search = RandomizedSearchCV(clf, param_distributions=param_dist,
-        n_iter=40, cv=5, n_jobs=3)
+    #test = RandomForestClassifier(max_depth=20, n_estimators=15, max_features=5)
+    clf = RandomForestClassifier()
+    param_dist = [{
+        "n_estimators":[26],
+        "max_depth": [200],
+        "max_features": [6],
+        "min_samples_split": [1],
+        "min_samples_leaf": [2],
+        "bootstrap": [True],
+        "criterion": ["entropy"],
+        "oob_score":[True],
+        "max_leaf_nodes":[None]}
+        ]
+    random_search = GridSearchCV(clf, param_grid=param_dist,
+        cv=5, n_jobs=3, verbose=50)
     random_search.fit(vals,actions)
-    joblib.dump(random_search, 'RandomForrestFix.pkl')
-    random_search = joblib.load('RandomForrestFix.pkl')
-    writeToCSV(random_search.predict(totalTest))
+    joblib.dump(random_search, 'GridForrestFix.pkl')
+    random_search = joblib.load('GridForrestFix.pkl')
+    print(random_search.best_estimator_)
+    #print(random_search.grid_scores_)
+    print(random_search.best_score_)
+    writeToCSV(random_search.predict_proba(totalTest)[:,1])
     print(random_search.score(X_test,y_test))
 
 if __name__ == '__main__':

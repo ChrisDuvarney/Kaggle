@@ -18,7 +18,7 @@ from sklearn.externals import joblib
 
 
 def writeToCSV(answer):
-    with open('submit.csv', 'wb') as csvfile:
+    with open('SVCsubmit.csv', 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',)
         spamwriter.writerow(['Id','Action'])
         for item in range(len(answer)):
@@ -57,14 +57,24 @@ def main():
     vals, actions = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\train.csv")
     X_train, X_test, y_train, y_test = train_test_split(vals, actions, test_size=0.33, random_state=22)
     totalTest, totalAns = matrixFromCSV("C:\\Users\\Chrisd\\Documents\\College\\Spring 2016\\379K\\Kaggle\\Kaggle\\test.csv")
-    clf = SVC()
-    param_dist = {"C":[1.0,2.0,4.0, .5, .3], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1, 1, 10], 
-    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]}
-    GridSearchCV(clf, param_grid=param_dist, cv=5, n_jobs=3)
+    clf = SVC(probability =True)
+    '''{"C":[1.0,2.0,4.0, .5, .3], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1, 1, 10], 
+    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},'''
+    param_dist = [
+    {"C":[1.0,2.0,4.0], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1], 
+    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
+    {"C":[.5, .3], "kernel":['rbf','linear', 'sigmoid'], 'gamma':[.001, .01, .1, 1, 10], 
+    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
+    {"C":[.5, .3], "kernel":['poly'], 'gamma':[.001, .01, .1, 1], 
+    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]}]
+    random_search = GridSearchCV(clf, param_grid=param_dist, cv=3, n_jobs=3, verbose=50)
     random_search.fit(vals,actions)
     joblib.dump(random_search, 'SVCsearch.pkl')
     random_search = joblib.load('SVCsearch.pkl')
-    writeToCSV(random_search.predict(totalTest))
+    print(random_search.best_estimator_)
+    #print(random_search.grid_scores_)
+    print(random_search.best_score_)
+    writeToCSV(random_search.predict(totalTest)[:,1])
     print(random_search.score(X_test,y_test))
 
 if __name__ == '__main__':
