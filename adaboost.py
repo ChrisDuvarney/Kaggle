@@ -22,7 +22,7 @@ from sklearn.naive_bayes import MultinomialNB
 
 
 def writeToCSV(answer):
-    with open('SVCsubmit.csv', 'wb') as csvfile:
+    with open('adaBoost.csv', 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',)
         spamwriter.writerow(['Id','Action'])
         for item in range(len(answer)):
@@ -73,7 +73,7 @@ def main():
     'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},'''
     param_dist = {"base_estimator":classifiers, "n_estimators":[525,550,575], "learning_rate":[1.45,1.5,1.55], "algorithm":['SAMME.R',], "random_state":[None]}
     #ftwo_scorer = roc_auc_score()
-    random_search = GridSearchCV(clf, param_grid=param_dist, cv=3, n_jobs=3, verbose=50, scoring='roc_auc')
+    random_search = GridSearchCV(clf, param_grid=param_dist, cv=5, n_jobs=3, verbose=50, scoring='roc_auc')
     random_search.fit(vals,actions)
     joblib.dump(random_search, 'SVCsearch.pkl')
     random_search = joblib.load('SVCsearch.pkl')

@@ -18,7 +18,7 @@ from sklearn.externals import joblib
 
 
 def writeToCSV(answer):
-    with open('submit.csv', 'wb') as csvfile:
+    with open('randomForest.csv', 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',)
         spamwriter.writerow(['Id','Action'])
         for item in range(len(answer)):
