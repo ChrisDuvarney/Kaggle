@@ -18,7 +18,7 @@ from sklearn.externals import joblib
 
 
 def writeToCSV(answer):
-    with open('randomForest.csv', 'wb') as csvfile:
+    with open('randomForestlog.csv', 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',)
         spamwriter.writerow(['Id','Action'])
         for item in range(len(answer)):
@@ -72,13 +72,13 @@ def main():
         ]
     random_search = GridSearchCV(clf, param_grid=param_dist,
         cv=5, n_jobs=3, verbose=50, scoring='roc_auc')
-    random_search.fit(vals,actions)
-    joblib.dump(random_search, 'GridForrestFix.pkl')
-    random_search = joblib.load('GridForrestFix.pkl')
+    random_search.fit(X_train,y_train)
+    joblib.dump(random_search, 'GridForrestFixlog.pkl')
+    random_search = joblib.load('GridForrestFixlog.pkl')
     print(random_search.best_estimator_)
     #print(random_search.grid_scores_)
     print(random_search.best_score_)
-    writeToCSV(random_search.predict_proba(totalTest)[:,1])
+    writeToCSV(random_search.predict_proba(X_test)[:,1])
     print(random_search.score(X_test,y_test))
 
 if __name__ == '__main__':

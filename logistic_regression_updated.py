@@ -79,8 +79,14 @@ def cv_loop(X, y, model, N):
     
 def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):    
     print "Reading dataset..."
-    train_data = pd.read_csv(train)
-    test_data = pd.read_csv(test)
+    
+    tempTrain = pd.read_csv(train)
+    tempData = pd.read_csv(test)
+    X_train, X_test= cross_validation.train_test_split(tempTrain, test_size=0.33, random_state=22)
+    train_data = X_train
+    test_data = X_test
+
+
     all_data = np.vstack((train_data.ix[:,1:-1], test_data.ix[:,1:-1]))
 
     num_train = np.shape(train_data)[0]
@@ -155,32 +161,16 @@ def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):
     print "Training full model..."
     #model.fit(X_train, y)
     
-    param_dist = [{
-      'penalty':['l2'], 'dual':[False, True], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
-      'intercept_scaling':[.5,1,2], 'class_weight':[None], 'random_state':[5], 
-      'solver':["liblinear"], 'multi_class':['ovr'], 'verbose':[0], 
-      'warm_start':[False], 'n_jobs':[1]},
-      {'penalty':['l1'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
-      'intercept_scaling':[.5,1,2], 'class_weight':[None], 'random_state':[5], 
-      'solver':["liblinear"], 'multi_class':['ovr'], 'verbose':[0], 
-      'warm_start':[False], 'n_jobs':[1]},
-      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
+    param_dist = [
+      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001,], 'C':[1.485994,], 'fit_intercept':[True], 
       'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
-      'solver':["sag"], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr'], 'verbose':[0], 
-      'warm_start':[False], 'n_jobs':[1]},
-      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
-      'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
-      'solver':["newton-cg",], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr'], 'verbose':[0], 
-      'warm_start':[False], 'n_jobs':[1]},
-      {'penalty':['l2'], 'dual':[False], 'tol':[0.0001, .00001, .001], 'C':[1.485994], 'fit_intercept':[True], 
-      'intercept_scaling':[1], 'class_weight':[None], 'random_state':[5], 
-      'solver':["lbfgs",], 'max_iter':[50, 100, 300, 500, 700], 'multi_class':['ovr','multinomial'], 'verbose':[0], 
+      'solver':["lbfgs",], 'max_iter':[50,], 'multi_class':['multinomial'], 'verbose':[0], 
       'warm_start':[False], 'n_jobs':[1]}]
-    #random_search = GridSearchCV(model, param_grid=param_dist, cv=5, n_jobs=3)
+    random_search = GridSearchCV(model, param_grid=param_dist, cv=5, n_jobs=3, scoring="roc_auc", refit=True, verbose=50)
 
-    random_search =joblib.load('randomSearchGiven.pkl')
-    #random_search.fit(X_train, y)
-    print(random_search.get_params)
+    #random_search =joblib.load('randomSearchGiven.pkl')
+    random_search.fit(X_train, y)
+    print(random_search.best_estimator_)
 
     print "Making prediction and saving results..."
     preds = random_search.predict_proba(X_test)[:,1]
@@ -192,6 +182,6 @@ def main(train='train.csv', test='test.csv', submit='logistic_pred.csv'):
 if __name__ == "__main__":
     args = { 'train':  'train.csv',
              'test':   'test.csv',
-             'submit': 'logistic_regression_pred.csv' }
+             'submit': 'logistic_regression_predLog.csv' }
     main(**args)
     
