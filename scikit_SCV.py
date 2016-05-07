@@ -14,6 +14,7 @@ from scipy.stats import randint as sp_randint
 from sklearn.grid_search import RandomizedSearchCV
 from sklearn.grid_search import GridSearchCV
 from sklearn.externals import joblib
+from sklearn.metrics import fbeta_score, make_scorer
 
 
 
@@ -61,13 +62,14 @@ def main():
     '''{"C":[1.0,2.0,4.0, .5, .3], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1, 1, 10], 
     'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},'''
     param_dist = [
-    {"C":[1.0,2.0,4.0], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1], 
-    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
-    {"C":[.5, .3], "kernel":['rbf','linear', 'sigmoid'], 'gamma':[.001, .01, .1, 1, 10], 
-    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
+    {"C":[1.0,2.0], "kernel":['rbf','linear', 'sigmoid', 'poly'], 'gamma':[.001, .01, .1], 
+    'shrinking':[True], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
+    {"C":[.5, .3], "kernel":['rbf','linear', 'sigmoid'], 'gamma':[.1, 1, 10], 
+    'shrinking':[True], 'cache_size':[600], 'verbose':[False], 'random_state':[5]},
     {"C":[.5, .3], "kernel":['poly'], 'gamma':[.001, .01, .1, 1], 
-    'shrinking':[True,False], 'cache_size':[600], 'verbose':[False], 'random_state':[5]}]
-    random_search = GridSearchCV(clf, param_grid=param_dist, cv=3, n_jobs=3, verbose=50)
+    'shrinking':[True], 'cache_size':[600], 'verbose':[False], 'random_state':[5]}]
+    ftwo_scorer = make_scorer(fbeta_score, beta=2)
+    random_search = GridSearchCV(clf, param_grid=param_dist, cv=3, n_jobs=3, verbose=50, scoring="roc_auc")
     random_search.fit(vals,actions)
     joblib.dump(random_search, 'SVCsearch.pkl')
     random_search = joblib.load('SVCsearch.pkl')

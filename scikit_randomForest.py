@@ -60,18 +60,18 @@ def main():
     #test = RandomForestClassifier(max_depth=20, n_estimators=15, max_features=5)
     clf = RandomForestClassifier()
     param_dist = [{
-        "n_estimators":[26],
+        "n_estimators":[200,220],
         "max_depth": [200],
-        "max_features": [6],
-        "min_samples_split": [1],
-        "min_samples_leaf": [2],
+        "max_features": [4],
+        "min_samples_split": [3],
+        "min_samples_leaf": [3],
         "bootstrap": [True],
         "criterion": ["entropy"],
         "oob_score":[True],
         "max_leaf_nodes":[None]}
         ]
     random_search = GridSearchCV(clf, param_grid=param_dist,
-        cv=5, n_jobs=3, verbose=50)
+        cv=5, n_jobs=3, verbose=50, scoring='roc_auc')
     random_search.fit(vals,actions)
     joblib.dump(random_search, 'GridForrestFix.pkl')
     random_search = joblib.load('GridForrestFix.pkl')
